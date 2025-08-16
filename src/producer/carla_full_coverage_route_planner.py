@@ -10,8 +10,8 @@ from agents.navigation.local_planner import RoadOption
 class CarlaFullCoverageRoutePlanner:
     _GRP_SAMPLING_RESOLUTION: float = 2.0
 
-    def __init__(self, carla_map: carla.Map) -> None:
-        self._map: carla.Map = carla_map
+    def __init__(self, map: carla.Map) -> None:
+        self._map: carla.Map = map
 
         self._grp: GlobalRoutePlanner = GlobalRoutePlanner(self._map, self._GRP_SAMPLING_RESOLUTION)
 
