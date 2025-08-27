@@ -15,7 +15,7 @@ class SimulationReplayer:
     EGO_CAMERA_IMAGE_WIDTH: int = 640
     EGO_CAMERA_IMAGE_HEIGHT: int = 640
     EGO_CAMERA_FOV: float = 90
-    EGO_CAMERA_SENSOR_TICK: float = 0.5
+    EGO_CAMERA_SENSOR_TICK: float = 1.0
 
     def __init__(self, recording_file: Path, weather_preset: WeatherPreset, server_config: ServerConfig):
         self._recording_file = recording_file.resolve()
