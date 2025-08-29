@@ -45,3 +45,11 @@ class Instance:
 class AnnotatedImage:
     image: np.ndarray
     instances: List[Instance]
+
+    @property
+    def image_width(self) -> int:
+        return self.image.shape[1]
+
+    @property
+    def image_height(self) -> int:
+        return self.image.shape[0]
