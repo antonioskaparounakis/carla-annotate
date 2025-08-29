@@ -6,6 +6,7 @@ from typing import Type
 
 from carla_annotate.carla.simulation_recorder import SimulationRecorder
 from carla_annotate.carla.simulation_replayer import SimulationReplayer
+from carla_annotate.exporters.yolo_dataset_exporter import YoloDatasetExporter
 from carla_annotate.types import Town, WeatherPreset, ServerConfig
 from carla_annotate.visualizers.opencv_visualizer import OpencvVisualizer
 
@@ -66,8 +67,10 @@ def run_annotate(args):
                 for annotated_image in replayer.replay():
                     visualizer.visualize(annotated_image)
         else:
-            for _ in replayer.replay():
-                pass
+            with YoloDatasetExporter(args.dataset_dir) as exporter:
+                for annotated_image in replayer.replay():
+                    exporter.export(annotated_image)
+
         frames, recording_file = replayer.summary
     time_elapsed = time.time() - time_start
     print_summary(frames, time_elapsed, recording_file)
@@ -147,7 +150,13 @@ def main():
     )
 
     annotate_parser.add_argument(
-        "--weather-preset",
+        "dataset_dir",
+        type=Path,
+        help="Dataset directory"
+    )
+
+    annotate_parser.add_argument(
+        "--weather",
         action=EnumAction,
         enum=WeatherPreset,
         default=WeatherPreset.CLEAR_NOON,
