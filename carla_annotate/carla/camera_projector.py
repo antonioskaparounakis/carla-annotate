@@ -1,7 +1,8 @@
 from typing import List, Tuple
 
-import carla
 import numpy as np
+
+import carla
 
 
 class CameraProjector:
@@ -14,11 +15,19 @@ class CameraProjector:
         self._fov_rad = np.deg2rad(float(self._camera.attributes["fov"]))
         self._intrinsics: np.ndarray = self._compute_intrinsics()
 
-    def project(self, bboxes: List[Tuple[carla.Actor, carla.BoundingBox]]) -> List[Tuple[carla.Actor, Tuple[int, int, int, int]]]:
-        T_w2c = np.array(self._camera.get_transform().get_inverse_matrix(), dtype=np.float32)
+    def project(
+        self, bboxes: List[Tuple[carla.Actor, carla.BoundingBox]]
+    ) -> List[Tuple[carla.Actor, Tuple[int, int, int, int]]]:
+        T_w2c = np.array(
+            self._camera.get_transform().get_inverse_matrix(), dtype=np.float32
+        )
         results = []
         for actor, bbox3d in bboxes:
-            actor_tf = carla.Transform() if isinstance(actor, carla.TrafficLight) else actor.get_transform()
+            actor_tf = (
+                carla.Transform()
+                if isinstance(actor, carla.TrafficLight)
+                else actor.get_transform()
+            )
 
             vertices = bbox3d.get_world_vertices(actor_tf)
             points = []
@@ -45,9 +54,7 @@ class CameraProjector:
         fx = (self._image_width / 2.0) / np.tan(self._fov_rad / 2.0)
         fy = fx
         cx, cy = self._image_width / 2.0, self._image_height / 2.0
-        K = np.array([[fx, 0.0, cx],
-                      [0.0, fy, cy],
-                      [0.0, 0.0, 1.0]], dtype=np.float32)
+        K = np.array([[fx, 0.0, cx], [0.0, fy, cy], [0.0, 0.0, 1.0]], dtype=np.float32)
         return K
 
     def _project_vertex(self, vertex: carla.Location, T_w2c: np.ndarray):

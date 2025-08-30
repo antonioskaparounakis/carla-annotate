@@ -1,5 +1,5 @@
 import time
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, Action
+from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser
 from enum import Enum
 from pathlib import Path
 from typing import Type
@@ -7,12 +7,11 @@ from typing import Type
 from carla_annotate.carla.simulation_recorder import SimulationRecorder
 from carla_annotate.carla.simulation_replayer import SimulationReplayer
 from carla_annotate.exporters.yolo_dataset_exporter import YoloDatasetExporter
-from carla_annotate.types import Town, WeatherPreset, ServerConfig
+from carla_annotate.domain import ServerConfig, Town, WeatherPreset
 from carla_annotate.visualizers.opencv_visualizer import OpencvVisualizer
 
 
 class EnumAction(Action):
-
     def __init__(self, option_strings, dest, enum: Type[Enum], **kwargs):
         self._enum = enum
         # choices shown in help will be pretty CLI strings
@@ -61,7 +60,9 @@ def run_annotate(args):
     server_config = ServerConfig(host=args.host, port=args.port, timeout=args.timeout)
     print_args("annotate", args)
     time_start = time.time()
-    with SimulationReplayer(args.recording_file, args.weather_preset, server_config) as replayer:
+    with SimulationReplayer(
+        args.recording_file, args.weather_preset, server_config
+    ) as replayer:
         if args.visualize:
             with OpencvVisualizer(window_name="carla-annotate") as visualizer:
                 for annotated_image in replayer.replay():
@@ -80,13 +81,11 @@ def main():
     parser = ArgumentParser(
         prog="carla-annotate",
         description="Generate Synthetic Autonomous Driving Image Datasets with CARLA",
-        formatter_class=ArgumentDefaultsHelpFormatter
+        formatter_class=ArgumentDefaultsHelpFormatter,
     )
 
     subparsers = parser.add_subparsers(
-        title="modes",
-        required=True,
-        help="Available modes of operation"
+        title="modes", required=True, help="Available modes of operation"
     )
 
     server_config_parser = ArgumentParser(add_help=False)
@@ -113,18 +112,12 @@ def main():
 
     # Record mode
     record_parser = subparsers.add_parser(
-        "record",
-        parents=[server_config_parser],
-        help="Record CARLA simulation"
+        "record", parents=[server_config_parser], help="Record CARLA simulation"
     )
 
     record_parser.set_defaults(func=run_record)
 
-    record_parser.add_argument(
-        "output_dir",
-        type=Path,
-        help="Output directory"
-    )
+    record_parser.add_argument("output_dir", type=Path, help="Output directory")
 
     record_parser.add_argument(
         "--town",
@@ -138,22 +131,16 @@ def main():
     annotate_parser = subparsers.add_parser(
         "annotate",
         parents=[server_config_parser],
-        help="Replay and annotate a CARLA simulation"
+        help="Replay and annotate a CARLA simulation",
     )
 
     annotate_parser.set_defaults(func=run_annotate)
 
     annotate_parser.add_argument(
-        "recording_file",
-        type=Path,
-        help="Simulation recording .log file"
+        "recording_file", type=Path, help="Simulation recording .log file"
     )
 
-    annotate_parser.add_argument(
-        "dataset_dir",
-        type=Path,
-        help="Dataset directory"
-    )
+    annotate_parser.add_argument("dataset_dir", type=Path, help="Dataset directory")
 
     annotate_parser.add_argument(
         "--weather",
@@ -166,7 +153,7 @@ def main():
     annotate_parser.add_argument(
         "--visualize",
         action="store_true",
-        help="Enable visualization of annotated images"
+        help="Enable visualization of annotated images",
     )
 
     args = parser.parse_args()

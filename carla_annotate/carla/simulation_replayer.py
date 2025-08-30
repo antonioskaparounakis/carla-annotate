@@ -1,12 +1,11 @@
 import queue
 from pathlib import Path
 from queue import Queue
-from typing import Optional, Iterator, Tuple
+from typing import Iterator, Optional, Tuple
 
 import carla
-
 from carla_annotate.carla.image_annotator import ImageAnnotator
-from carla_annotate.types import WeatherPreset, ServerConfig, AnnotatedImage
+from carla_annotate.domain import AnnotatedImage, ServerConfig, WeatherPreset
 
 
 class SimulationReplayer:
@@ -17,7 +16,12 @@ class SimulationReplayer:
     EGO_CAMERA_FOV: float = 90
     EGO_CAMERA_SENSOR_TICK: float = 1.0
 
-    def __init__(self, recording_file: Path, weather_preset: WeatherPreset, server_config: ServerConfig):
+    def __init__(
+        self,
+        recording_file: Path,
+        weather_preset: WeatherPreset,
+        server_config: ServerConfig,
+    ):
         self._recording_file = recording_file.resolve()
         self._weather_preset = weather_preset
         self._server_config = server_config
@@ -49,7 +53,12 @@ class SimulationReplayer:
 
         try:
             while self._recording_frames > 0:
-                for _ in range(int(self.EGO_CAMERA_SENSOR_TICK / self.SYNCHRONOUS_MODE_FIXED_DELTA_SECONDS)):
+                for _ in range(
+                    int(
+                        self.EGO_CAMERA_SENSOR_TICK
+                        / self.SYNCHRONOUS_MODE_FIXED_DELTA_SECONDS
+                    )
+                ):
                     frame = self._world.tick()
                     self._recording_frames -= 1
                     self._recorded_frames += 1
@@ -91,7 +100,9 @@ class SimulationReplayer:
     def _set_synchronous_mode(self, synchronous: bool) -> None:
         settings = self._world.get_settings()
         settings.synchronous_mode = synchronous
-        settings.fixed_delta_seconds = self.SYNCHRONOUS_MODE_FIXED_DELTA_SECONDS if synchronous else None
+        settings.fixed_delta_seconds = (
+            self.SYNCHRONOUS_MODE_FIXED_DELTA_SECONDS if synchronous else None
+        )
         self._world.apply_settings(settings)
 
     def _set_weather_preset(self) -> None:
@@ -128,5 +139,9 @@ class SimulationReplayer:
         blueprint.set_attribute("fov", str(self.EGO_CAMERA_FOV))
         blueprint.set_attribute("sensor_tick", str(self.EGO_CAMERA_SENSOR_TICK))
         ego_vehicle_bbox = self._ego_vehicle.bounding_box
-        loc = carla.Location(z=ego_vehicle_bbox.location.z + ego_vehicle_bbox.extent.z + 1)
-        return self._world.spawn_actor(blueprint, carla.Transform(loc, carla.Rotation()), self._ego_vehicle)
+        loc = carla.Location(
+            z=ego_vehicle_bbox.location.z + ego_vehicle_bbox.extent.z + 1
+        )
+        return self._world.spawn_actor(
+            blueprint, carla.Transform(loc, carla.Rotation()), self._ego_vehicle
+        )

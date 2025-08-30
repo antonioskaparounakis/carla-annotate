@@ -5,16 +5,14 @@ from typing import Tuple
 import cv2
 import yaml
 
-from carla_annotate.types import Category, AnnotatedImage
-from carla_annotate.utils import rgb_to_opencv_image, bbox_to_yolo
+from carla_annotate.domain import AnnotatedImage, Category
+from carla_annotate.utils import bbox_to_yolo, rgb_to_opencv_image
 
 
 class YoloDatasetExporter:
     VAL_RATIO: float = 0.2
 
-    CATEGORY_TO_CLASS_INDEX = {
-        Category.TRAFFIC_LIGHT: 0
-    }
+    CATEGORY_TO_CLASS_INDEX = {Category.TRAFFIC_LIGHT: 0}
 
     def __init__(self, dataset_dir: Path):
         self.dataset_dir = dataset_dir
@@ -67,7 +65,7 @@ class YoloDatasetExporter:
             "names": {
                 class_index: category.name.lower()
                 for category, class_index in self.CATEGORY_TO_CLASS_INDEX.items()
-            }
+            },
         }
         text = yaml.safe_dump(data, sort_keys=False)
         path = self.dataset_dir / f"{self.dataset_dir.stem}.yaml"
@@ -84,7 +82,10 @@ class YoloDatasetExporter:
         rows = []
         for instance in annotated_image.instances:
             class_index = self.CATEGORY_TO_CLASS_INDEX[instance.category]
-            x_center, y_center, width, height = bbox_to_yolo(instance.bbox, annotated_image.image_width,
-                                                             annotated_image.image_height)
-            rows.append(f"{class_index} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}")
+            x_center, y_center, width, height = bbox_to_yolo(
+                instance.bbox, annotated_image.image_width, annotated_image.image_height
+            )
+            rows.append(
+                f"{class_index} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}"
+            )
         output_path.write_text("\n".join(rows), encoding="utf-8")

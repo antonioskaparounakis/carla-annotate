@@ -3,7 +3,7 @@ from typing import Tuple
 import cv2
 import numpy as np
 
-from carla_annotate.types import AnnotatedImage
+from carla_annotate.domain import AnnotatedImage
 from carla_annotate.utils import rgb_to_opencv_image
 
 
@@ -29,8 +29,12 @@ class OpencvVisualizer:
         cv2.imshow(self._window_name, bgr)
         cv2.waitKey(1)
 
-    def _draw_bounding_box(self, image: np.ndarray, bbox: Tuple[int, int, int, int]) -> None:
+    def _draw_bounding_box(
+        self, image: np.ndarray, bbox: Tuple[int, int, int, int]
+    ) -> None:
         x_min, y_min, x_max, y_max = bbox
         top_left = x_min, y_min
         bottom_right = x_max, y_max
-        cv2.rectangle(image, top_left, bottom_right, self._BBOX_COLOR, self._BBOX_THICKNESS)
+        cv2.rectangle(
+            image, top_left, bottom_right, self._BBOX_COLOR, self._BBOX_THICKNESS
+        )

@@ -1,13 +1,13 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Tuple
-
-import carla
+from typing import List, Optional, Tuple
 
 from agents.navigation.basic_agent import BasicAgent
 from agents.navigation.local_planner import RoadOption
+
+import carla
 from carla_annotate.carla.route_planner import RoutePlanner
-from carla_annotate.types import Town, ServerConfig
+from carla_annotate.domain import ServerConfig, Town
 
 
 class SimulationRecorder:
@@ -92,11 +92,15 @@ class SimulationRecorder:
     def _set_synchronous_mode(self, synchronous: bool) -> None:
         settings = self._world.get_settings()
         settings.synchronous_mode = synchronous
-        settings.fixed_delta_seconds = self.SYNCHRONOUS_MODE_FIXED_DELTA_SECONDS if synchronous else None
+        settings.fixed_delta_seconds = (
+            self.SYNCHRONOUS_MODE_FIXED_DELTA_SECONDS if synchronous else None
+        )
         self._world.apply_settings(settings)
 
     def _spawn_ego_vehicle(self) -> carla.Vehicle:
-        blueprint = self._world.get_blueprint_library().find(self.EGO_VEHICLE_BLUEPRINT_ID)
+        blueprint = self._world.get_blueprint_library().find(
+            self.EGO_VEHICLE_BLUEPRINT_ID
+        )
         blueprint.set_attribute("role_name", "ego")
         spawn_point = self._route[0][0].transform
         spawn_point.location.z += 0.5
@@ -107,7 +111,13 @@ class SimulationRecorder:
             self._ego_vehicle.destroy()
 
     def _create_ego_agent(self) -> BasicAgent:
-        agent = BasicAgent(self._ego_vehicle, self.EGO_VEHICLE_TARGET_SPEED, {}, self._map, self._route_planner.grp)
+        agent = BasicAgent(
+            self._ego_vehicle,
+            self.EGO_VEHICLE_TARGET_SPEED,
+            {},
+            self._map,
+            self._route_planner.grp,
+        )
         agent.ignore_traffic_lights(True)
         agent.set_global_plan(self._route)
         return agent

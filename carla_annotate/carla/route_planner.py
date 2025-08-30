@@ -1,10 +1,10 @@
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
-import carla
 import networkx as nx
-
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 from agents.navigation.local_planner import RoadOption
+
+import carla
 
 
 class RoutePlanner:
@@ -28,7 +28,9 @@ class RoutePlanner:
         return self._path_to_route(eulerian_path)
 
     @staticmethod
-    def _build_graph(topology: List[Tuple[carla.Waypoint, carla.Waypoint]]) -> nx.DiGraph:
+    def _build_graph(
+        topology: List[Tuple[carla.Waypoint, carla.Waypoint]]
+    ) -> nx.DiGraph:
         graph = nx.DiGraph()
         for entry_wp, exit_wp in topology:
             distance = entry_wp.transform.location.distance(exit_wp.transform.location)
@@ -36,19 +38,25 @@ class RoutePlanner:
         return graph
 
     @staticmethod
-    def _build_id_to_waypoint(topology: List[Tuple[carla.Waypoint, carla.Waypoint]]) -> Dict[int, carla.Waypoint]:
+    def _build_id_to_waypoint(
+        topology: List[Tuple[carla.Waypoint, carla.Waypoint]]
+    ) -> Dict[int, carla.Waypoint]:
         id_to_waypoint = {}
         for entry_wp, exit_wp in topology:
             id_to_waypoint[entry_wp.id] = entry_wp
             id_to_waypoint[exit_wp.id] = exit_wp
         return id_to_waypoint
 
-    def _path_to_route(self, path: List[Tuple[int, int]]) -> List[Tuple[carla.Waypoint, RoadOption]]:
+    def _path_to_route(
+        self, path: List[Tuple[int, int]]
+    ) -> List[Tuple[carla.Waypoint, RoadOption]]:
         route = []
         for entry_wp_id, exit_wp_id in path:
             entry_wp = self._id_to_waypoint[entry_wp_id]
             exit_wp = self._id_to_waypoint[exit_wp_id]
-            segment = self.grp.trace_route(entry_wp.transform.location, exit_wp.transform.location)
+            segment = self.grp.trace_route(
+                entry_wp.transform.location, exit_wp.transform.location
+            )
             if segment:
                 route.extend(segment)
         return route
@@ -78,12 +86,16 @@ class RoutePlanner:
         paths = {}
 
         for u in neg:
-            distances_u, paths_u = nx.single_source_dijkstra(G, source=u, weight="weight")
+            distances_u, paths_u = nx.single_source_dijkstra(
+                G, source=u, weight="weight"
+            )
             for v in pos:
                 distances[(u, v)] = distances_u[v]
                 paths[(u, v)] = paths_u[v]
 
-        worst_u, worst_v = max(((u, v) for u in neg for v in pos), key=distances.__getitem__)
+        worst_u, worst_v = max(
+            ((u, v) for u in neg for v in pos), key=distances.__getitem__
+        )
 
         neg[worst_u] -= 1
         if neg[worst_u] == 0:
@@ -96,7 +108,9 @@ class RoutePlanner:
         H = nx.MultiDiGraph(G)
 
         while neg and pos:
-            best_u, best_v = min(((u, v) for u in neg for v in pos), key=distances.__getitem__)
+            best_u, best_v = min(
+                ((u, v) for u in neg for v in pos), key=distances.__getitem__
+            )
 
             best_path = paths[(best_u, best_v)]
 
@@ -161,8 +175,9 @@ class RoutePlanner:
                 paths[(u, v)] = path_u[v]
 
         # ---------- 3) Tiny helper: solve min-cost flow on residual counts ----------
-        def _solve_residual_mcf(neg_counts: Dict[str, int],
-                                pos_counts: Dict[str, int]) -> Tuple[int, Dict[str, Dict[str, int]]]:
+        def _solve_residual_mcf(
+            neg_counts: Dict[str, int], pos_counts: Dict[str, int]
+        ) -> Tuple[int, Dict[str, Dict[str, int]]]:
             """
             Build a bipartite flow network (neg → pos) with arc costs equal to
             shortest-path distances, then run network_simplex.
@@ -242,8 +257,12 @@ class RoutePlanner:
 
         # Optional sanity: result is semi-eulerian (open trail exists)
         # (keep both checks; some NetworkX versions differ on DiGraph support)
-        assert any((H.out_degree(x) - H.in_degree(x)) == +1 for x in H), "No +1 imbalance"
-        assert any((H.out_degree(x) - H.in_degree(x)) == -1 for x in H), "No -1 imbalance"
+        assert any(
+            (H.out_degree(x) - H.in_degree(x)) == +1 for x in H
+        ), "No +1 imbalance"
+        assert any(
+            (H.out_degree(x) - H.in_degree(x)) == -1 for x in H
+        ), "No -1 imbalance"
         # If your codebase uses this check, and it works for DiGraph/MultiDiGraph, keep it:
         # assert nx.is_semieulerian(H)
 

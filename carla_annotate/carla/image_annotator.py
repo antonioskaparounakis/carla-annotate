@@ -1,10 +1,9 @@
 from typing import List, Tuple
 
 import carla
-
 from carla_annotate.carla.camera_projector import CameraProjector
 from carla_annotate.carla.camera_visibility_filter import CameraVisibilityFilter
-from carla_annotate.types import AnnotatedImage, Category, Instance
+from carla_annotate.domain import AnnotatedImage, Category, Instance
 from carla_annotate.utils import carla_image_to_rgb
 
 
@@ -17,7 +16,6 @@ class ImageAnnotator:
         self._static_actors_bboxes = self._expand_static_actors(world)
 
     def annotate(self, image: carla.Image, actors: carla.ActorList) -> AnnotatedImage:
-        bboxes = []
 
         # Filter visible
         visible = self._visibility_filter.filter_visible(self._static_actors_bboxes)
@@ -33,7 +31,9 @@ class ImageAnnotator:
         rgb = carla_image_to_rgb(image)
         return AnnotatedImage(rgb, instances)
 
-    def _expand_static_actors(self, world: carla.World) -> List[Tuple[carla.Actor, carla.BoundingBox]]:
+    def _expand_static_actors(
+        self, world: carla.World
+    ) -> List[Tuple[carla.Actor, carla.BoundingBox]]:
         actors = world.get_actors()
         results = []
         # Light boxes
