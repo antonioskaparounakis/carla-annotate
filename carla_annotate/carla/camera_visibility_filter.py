@@ -37,16 +37,20 @@ class CameraVisibilityFilter:
         angle = camera_fwd.get_vector_angle(camera_to_bbox)
         return angle < self._camera_fov_half_rad
 
-    def _is_in_sight(
-        self, camera_loc: carla.Location, bbox_loc: carla.Location, actor: carla.Actor
-    ) -> bool:
+    # def _is_in_sight(
+    #     self, camera_loc: carla.Location, bbox_loc: carla.Location, actor: carla.Actor
+    # ) -> bool:
+    #     hits = self._world.cast_ray(camera_loc, bbox_loc)
+    #     idx, tolerance = (1, 0.1) if isinstance(actor, carla.TrafficLight) else (0, 0)
+    #     hit = hits[idx]
+    #     dist_to_hit = camera_loc.distance(hit.location)
+    #     dist_to_bbox = camera_loc.distance(bbox_loc)
+    #     if hit.label in actor.semantic_tags and math.isclose(
+    #         dist_to_hit, dist_to_bbox, abs_tol=tolerance
+    #     ):
+    #         return True
+    #     return False
+
+    def _is_in_sight(self, camera_loc, bbox_loc, actor):
         hits = self._world.cast_ray(camera_loc, bbox_loc)
-        idx, tolerance = (1, 0.1) if isinstance(actor, carla.TrafficLight) else (0, 0)
-        hit = hits[idx]
-        dist_to_hit = camera_loc.distance(hit.location)
-        dist_to_bbox = camera_loc.distance(bbox_loc)
-        if hit.label in actor.semantic_tags and math.isclose(
-            dist_to_hit, dist_to_bbox, abs_tol=tolerance
-        ):
-            return True
-        return False
+        return True if len(hits) == 0 else False # Temp fix for Town010HD

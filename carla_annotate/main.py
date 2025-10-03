@@ -49,7 +49,7 @@ def run_record(args):
     server_config = ServerConfig(host=args.host, port=args.port, timeout=args.timeout)
     print_args("record", args)
     time_start = time.time()
-    with SimulationRecorder(args.recording_dir, args.town, server_config) as recorder:
+    with SimulationRecorder(args.output_dir, args.town, server_config) as recorder:
         recorder.record()
         frames, recording_file = recorder.summary
     time_elapsed = time.time() - time_start
@@ -61,7 +61,7 @@ def run_annotate(args):
     print_args("annotate", args)
     time_start = time.time()
     with SimulationReplayer(
-        args.recording_file, args.weather_preset, server_config
+        args.recording_file, args.weather, server_config
     ) as replayer:
         if args.visualize:
             with OpencvVisualizer(window_name="carla-annotate") as visualizer:

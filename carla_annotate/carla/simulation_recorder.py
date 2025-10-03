@@ -2,10 +2,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import carla
+
 from agents.navigation.basic_agent import BasicAgent
 from agents.navigation.local_planner import RoadOption
-
-import carla
 from carla_annotate.carla.route_planner import RoutePlanner
 from carla_annotate.domain import ServerConfig, Town
 
@@ -49,6 +49,7 @@ class SimulationRecorder:
         try:
             while not self._agent.done():
                 self._world.tick()
+                self._update_spectator()
                 self._recorded_frames += 1
                 self._ego_vehicle.apply_control(self._agent.run_step())
             self._recording_completed = True
@@ -59,12 +60,14 @@ class SimulationRecorder:
         self._client = self._create_client()
         self._world = self._client.load_world(self._town.value)
         self._world.wait_for_tick()
-        self._set_rendering_mode(rendering=False)
+        self._world.set_weather(getattr(carla.WeatherParameters, "ClearNoon"))
+        self._set_rendering_mode(rendering=True)
         self._set_synchronous_mode(synchronous=True)
         self._world.tick()
         self._map = self._world.get_map()
         self._route_planner = RoutePlanner(self._map)
         self._route = self._route_planner.plan(self.EGO_VEHICLE_ROUTE_STRATEGY)
+        self._route = self._route[:50]
         self._ego_vehicle = self._spawn_ego_vehicle()
         self._agent = self._create_ego_agent()
 
@@ -127,3 +130,19 @@ class SimulationRecorder:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{self._town.value}_{timestamp}.log"
         return (self._output_dir / filename).resolve()
+
+    def _update_spectator(self):
+        spectator = self._world.get_spectator()
+        vehicle_tf = self._ego_vehicle.get_transform()
+
+        # Offset relative to the vehicle's local frame
+        offset = carla.Location(x=-8.0, z=4.0)  # 8m behind, 4m above
+        spectator_tf = carla.Transform(
+            vehicle_tf.transform(offset),  # position = vehicle_tf * offset
+            carla.Rotation(
+                pitch=-15.0,  # tilt down a bit
+                yaw=vehicle_tf.rotation.yaw,  # match vehicle yaw
+                roll=0.0
+            )
+        )
+        spectator.set_transform(spectator_tf)
